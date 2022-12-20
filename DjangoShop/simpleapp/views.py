@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from django.views.generic import ListView, DetailView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -35,26 +36,33 @@ class ProductDetail(DetailView):
     template_name = 'flatpages/product.html'
     context_object_name = 'product'
 
-
-def create_product(request):
-    form = ProductForm()
-
-    if request.method == 'POST':
-        form = ProductForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/products/')
-
-    return render(request, 'flatpages/product_edit.html', {'form': form})
+#Можно создать представление с помощью функции, а не класса
+#def create_product(request):
+    #form = ProductForm()
+    #if request.method == 'POST':
+        #form = ProductForm(request.POST)
+        #if form.is_valid():
+            #form.save()
+            #return HttpResponseRedirect('/products/')
+    #return render(request, 'flatpages/product_edit.html', {'form': form})
 
 
-class ProductUpdate(UpdateView):
+class ProductCreate(PermissionRequiredMixin, CreateView):
+    permission_required = ('simpleapp.add_product',)
     form_class = ProductForm
     model = Product
     template_name = 'flatpages/product_edit.html'
 
 
-class ProductDelete(DeleteView):
+class ProductUpdate(PermissionRequiredMixin, UpdateView):
+    permission_required = ('simpleapp.change_product',)
+    form_class = ProductForm
+    model = Product
+    template_name = 'flatpages/product_edit.html'
+
+
+class ProductDelete(PermissionRequiredMixin, DeleteView):
+    permission_required = ('simpleapp.delete_product',)
     model = Product
     template_name = 'flatpages/product_delete.html'
     success_url = reverse_lazy('product_list')
